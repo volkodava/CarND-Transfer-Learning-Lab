@@ -1,5 +1,6 @@
 # TODO: import Keras layers you need here
 import pickle
+from enum import Enum
 
 import numpy as np
 import tensorflow as tf
@@ -9,15 +10,55 @@ from keras.models import Sequential
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-# command line flags
-# flags.DEFINE_string('training_file', 'vgg-100/vgg_cifar10_100_bottleneck_features_train.p',
-#                     "Bottleneck features training file (.p)")
-# flags.DEFINE_string('validation_file', 'vgg-100/vgg_cifar10_bottleneck_features_validation.p',
-#                     "Bottleneck features validation file (.p)")
-flags.DEFINE_string('training_file', 'vgg-100/vgg_traffic_100_bottleneck_features_train.p',
+
+class ModelType(Enum):
+    INCEPTION = 0
+    VGG = 1
+    RESNET = 2
+
+
+class DataType(Enum):
+    CIFAR = 0
+    TRAFFIC = 1
+
+
+default_model = ModelType.RESNET
+default_data = DataType.TRAFFIC
+
+train_file_pattern = "%s-100/%s_%s_100_bottleneck_features_train.p"
+valid_file_pattern = "%s-100/%s_%s_bottleneck_features_validation.p"
+
+model_prefix = ""
+data_prefix = ""
+
+if default_model == ModelType.INCEPTION:
+    model_prefix = "inception"
+elif default_model == ModelType.VGG:
+    model_prefix = "vgg"
+elif default_model == ModelType.RESNET:
+    model_prefix = "resnet"
+else:
+    raise ValueError("Model type not exists %s" % default_model)
+
+if default_data == DataType.CIFAR:
+    data_prefix = "cifar10"
+elif default_data == DataType.TRAFFIC:
+    data_prefix = "traffic"
+else:
+    raise ValueError("Data type not exists %s" % default_data)
+
+training_file = train_file_pattern % (model_prefix, model_prefix, data_prefix)
+validation_file = valid_file_pattern % (model_prefix, model_prefix, data_prefix)
+
+print("training_file: ", training_file)
+print("validation_file: ", validation_file)
+
+flags.DEFINE_string('training_file', training_file,
                     "Bottleneck features training file (.p)")
-flags.DEFINE_string('validation_file', 'vgg-100/vgg_traffic_bottleneck_features_validation.p',
+flags.DEFINE_string('validation_file', validation_file,
                     "Bottleneck features validation file (.p)")
+flags.DEFINE_integer('epochs', 50, "The number of epochs.")
+flags.DEFINE_integer('batch_size', 256, "The batch size.")
 
 
 def load_bottleneck_data(training_file, validation_file):
@@ -73,8 +114,46 @@ def main(_):
     y_val_norm = label_binarizer.fit_transform(y_val)
 
     model.compile('adam', 'categorical_crossentropy', ['accuracy'])
-    model.fit(X_train, y_train_one_hot, nb_epoch=50, validation_data=(X_val, y_val_norm),
-              shuffle=True)
+    history = model.fit(X_train, y_train_one_hot, FLAGS.batch_size, FLAGS.epochs, validation_data=(X_val, y_val_norm),
+                        shuffle=True, verbose=0)
+
+    print("Model: ", default_model)
+    print("Data: ", default_data)
+    print("Accuracy: %s%%" % (history.history['acc'][-1] * 100))
+    print("Loss: %s%%" % (history.history['loss'][-1]))
+
+
+# Data shape =  (1000, 1, 1, 2048)
+# Model:  ModelType.INCEPTION
+# Data:  DataType.CIFAR
+# Accuracy: 100.0%
+# Loss: 0.0937012120485%
+#
+# Model:  ModelType.VGG
+# Data:  DataType.CIFAR
+# Accuracy: 95.0999994755%
+# Loss: 0.255422445536%
+#
+# Model:  ModelType.RESNET
+# Data:  DataType.CIFAR
+# Accuracy: 100.0%
+# Loss: 0.0710589367747%
+#
+#
+# Model:  ModelType.INCEPTION
+# Data:  DataType.TRAFFIC
+# Accuracy: 100.0%
+# Loss: 0.0272921757764%
+#
+# Model:  ModelType.VGG
+# Data:  DataType.TRAFFIC
+# Accuracy: 99.558139607%
+# Loss: 0.0852844921032%
+#
+# Model:  ModelType.RESNET
+# Data:  DataType.TRAFFIC
+# Accuracy: 100.0%
+# Loss: 0.0321581754331%
 
 
 # parses flags and calls the `main` function above
