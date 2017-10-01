@@ -62,23 +62,15 @@ def main(_):
     model.add(Dense(nb_classes))
     model.add(Activation('softmax'))
 
-    X_normalized = np.array(X_train / 255.0 - 0.5)
-
     from sklearn.preprocessing import LabelBinarizer
     label_binarizer = LabelBinarizer()
-    y_one_hot = label_binarizer.fit_transform(y_train)
+
+    y_train_one_hot = label_binarizer.fit_transform(y_train)
+    y_val_norm = label_binarizer.fit_transform(y_val)
 
     model.compile('adam', 'categorical_crossentropy', ['accuracy'])
-    history = model.fit(X_normalized, y_one_hot, nb_epoch=3, validation_split=0.2)
-
-    # preprocess data
-    X_normalized_test = np.array(X_val / 255.0 - 0.5)
-    y_one_hot_test = label_binarizer.fit_transform(y_val)
-
-    # TODO: train your model here
-    metrics = model.evaluate(X_normalized_test, y_one_hot_test)
-    print("")
-    print(metrics)
+    model.fit(X_train, y_train_one_hot, nb_epoch=50, validation_data=(X_val, y_val_norm),
+              shuffle=True)
 
 
 # parses flags and calls the `main` function above
