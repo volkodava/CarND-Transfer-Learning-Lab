@@ -10,9 +10,13 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 # command line flags
-flags.DEFINE_string('training_file', 'vgg-100/vgg_cifar10_100_bottleneck_features_train.p',
+# flags.DEFINE_string('training_file', 'vgg-100/vgg_cifar10_100_bottleneck_features_train.p',
+#                     "Bottleneck features training file (.p)")
+# flags.DEFINE_string('validation_file', 'vgg-100/vgg_cifar10_bottleneck_features_validation.p',
+#                     "Bottleneck features validation file (.p)")
+flags.DEFINE_string('training_file', 'vgg-100/vgg_traffic_100_bottleneck_features_train.p',
                     "Bottleneck features training file (.p)")
-flags.DEFINE_string('validation_file', 'vgg-100/vgg_cifar10_bottleneck_features_validation.p',
+flags.DEFINE_string('validation_file', 'vgg-100/vgg_traffic_bottleneck_features_validation.p',
                     "Bottleneck features validation file (.p)")
 
 
