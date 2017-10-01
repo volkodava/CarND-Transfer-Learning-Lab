@@ -56,8 +56,6 @@ def main(_):
     # 10 for cifar10
     # 43 for traffic
     train_shape = X_train.shape[1:]
-    # y_train = y_train.reshape(-1)
-    # y_val = y_val.reshape(-1)
 
     model = Sequential()
     model.add(Flatten(input_shape=train_shape))
@@ -70,7 +68,7 @@ def main(_):
     label_binarizer = LabelBinarizer()
     y_one_hot = label_binarizer.fit_transform(y_train)
 
-    model.compile('adam', 'sparse_categorical_crossentropy', ['accuracy'])
+    model.compile('adam', 'categorical_crossentropy', ['accuracy'])
     history = model.fit(X_normalized, y_one_hot, nb_epoch=3, validation_split=0.2)
 
     # preprocess data
@@ -79,6 +77,7 @@ def main(_):
 
     # TODO: train your model here
     metrics = model.evaluate(X_normalized_test, y_one_hot_test)
+    print("")
     print(metrics)
 
 
